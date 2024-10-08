@@ -1,15 +1,16 @@
-import "./Header.css";
-import { CgHeart } from "react-icons/cg";
-import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { RxHamburgerMenu } from "react-icons/rx";
-import { RxCross2 } from "react-icons/rx";
-import { GrSearch } from "react-icons/gr";
-import { useData } from "../../contexts/DataProvider.js";
-import { useAuth } from "../../contexts/AuthProvider.js";
-import { CgShoppingCart } from "react-icons/cg";
-import { useUserData } from "../../contexts/UserDataProvider.js";
+import './Header.css';
+import { CgHeart } from 'react-icons/cg';
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { RxHamburgerMenu } from 'react-icons/rx';
+import { RxCross2 } from 'react-icons/rx';
+import { GrSearch } from 'react-icons/gr';
+import { useData } from '../../contexts/DataProvider.js';
+import { useAuth } from '../../contexts/AuthProvider.js';
+import { CgShoppingCart } from 'react-icons/cg';
+import { useUserData } from '../../contexts/UserDataProvider.js';
+import { useConnect } from 'wagmi';
 
 export const Header = () => {
   const { auth } = useAuth();
@@ -17,8 +18,10 @@ export const Header = () => {
   const navigate = useNavigate();
   const { userDataState } = useUserData();
   const [showHamburger, setShowHamburger] = useState(true);
+  const { connectors, connect } = useConnect();
+
   const getActiveStyle = ({ isActive }) => {
-    return { color: isActive ? "white" : "" };
+    return { color: isActive ? 'white' : '' };
   };
 
   const totalProductsInCart = userDataState.cartProducts?.reduce(
@@ -34,6 +37,10 @@ export const Header = () => {
 
   const isProductInWishlist = () =>
     Number(totalProductsInWishlist) ? true : false;
+
+  const filteredConnectors = connectors.filter(
+    (connector) => connector.type === 'injected'
+  );
 
   return (
     <nav>
@@ -51,10 +58,10 @@ export const Header = () => {
       <div className="nav-input-search">
         <input
           onChange={(e) =>
-            dispatch({ type: "SEARCH", payload: e.target.value })
+            dispatch({ type: 'SEARCH', payload: e.target.value })
           }
           onKeyDown={(e) => {
-            e.key === "Enter" && navigate("/product-listing");
+            e.key === 'Enter' && navigate('/product-listing');
           }}
           placeholder="Search"
         />
@@ -66,31 +73,51 @@ export const Header = () => {
       <div
         className={
           !showHamburger
-            ? "nav-link-container-mobile nav-link-container"
-            : "nav-link-container"
-        }
-      >
+            ? 'nav-link-container-mobile nav-link-container'
+            : 'nav-link-container'
+        }>
+        <div
+          style={{
+            paddingRight: '20px',
+            marginRight: '20px',
+            borderRight: '1px solid #646464',
+            display: 'flex',
+            gap: '10px',
+          }}>
+          {filteredConnectors.map((connector) => (
+            <button
+              style={{
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '4px',
+                background: '#2d2d2d',
+                color: '#ffffff',
+              }}
+              key={connector.uid}
+              onClick={() => connect({ connector })}>
+              {connector.name}
+            </button>
+          ))}
+        </div>
+
         <NavLink
           onClick={() => setShowHamburger(true)}
           style={getActiveStyle}
-          to="/product-listing"
-        >
+          to="/product-listing">
           Explore
         </NavLink>
         <NavLink
           onClick={() => setShowHamburger(true)}
           style={getActiveStyle}
-          to={auth.isAuth ? "/profile" : "/login"}
-        >
-          {!auth.isAuth ? "Login" : "Profile"}
+          to={auth.isAuth ? '/profile' : '/login'}>
+          {!auth.isAuth ? 'Login' : 'Profile'}
         </NavLink>
         <NavLink
           onClick={() => setShowHamburger(true)}
           style={getActiveStyle}
-          to="wishlist"
-        >
-          <span>{!showHamburger ? "Wishlist" : ""}</span>
-          <CgHeart size={25} className="wishlist" />{" "}
+          to="wishlist">
+          <span>{!showHamburger ? 'Wishlist' : ''}</span>
+          <CgHeart size={25} className="wishlist" />{' '}
           {isProductInWishlist() && (
             <span className="cart-count cart-count-mobile">
               {totalProductsInWishlist}
@@ -100,14 +127,13 @@ export const Header = () => {
         <NavLink
           onClick={() => setShowHamburger(true)}
           style={getActiveStyle}
-          to="/cart"
-        >
-          <span>{!showHamburger ? "Cart" : ""}</span>
-          <CgShoppingCart size={25} className="cart" />{" "}
+          to="/cart">
+          <span>{!showHamburger ? 'Cart' : ''}</span>
+          <CgShoppingCart size={25} className="cart" />{' '}
           {isProductInCart() && (
             <span className="cart-count cart-count-mobile">
-              {" "}
-              {totalProductsInCart}{" "}
+              {' '}
+              {totalProductsInCart}{' '}
             </span>
           )}
         </NavLink>
@@ -120,9 +146,8 @@ export const Header = () => {
       {!showHamburger && (
         <div
           className="cross-tab-icon cross-tab-icon-mobile"
-          onClick={() => setShowHamburger(true)}
-        >
-          <RxCross2 color={"rgb(106, 106, 65)"} size={25} />
+          onClick={() => setShowHamburger(true)}>
+          <RxCross2 color={'rgb(106, 106, 65)'} size={25} />
         </div>
       )}
     </nav>
